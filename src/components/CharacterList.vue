@@ -1,9 +1,9 @@
 <template>
   <div>
-    <h2>Harry Potter Charaktere</h2>
+    <h2>Harry Potter Characters</h2>
     <ul>
       <li v-for="char in characters" :key="char.name">
-        {{ char.name }} - {{ char.house || 'Kein Haus' }}
+        {{ char.name }} - {{ char.house || 'No House' }}
       </li>
     </ul>
   </div>

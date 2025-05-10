@@ -1,6 +1,10 @@
 <template>
   <div id="app">
-    <h1>Harry Potter WebTech</h1>
+    <header>
+      <h1>Harry Potter WebTech</h1>
+      <hr />
+    </header>
+
     <CharacterList />
   </div>
 </template>
@@ -16,11 +20,22 @@ export default {
 }
 </script>
 
-
 <style>
-/* Optional: kleines Styling */
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   padding: 1rem;
 }
+
+header h1 {
+  text-align: left;
+  font-size: 2rem;
+  margin: 0;
+  padding: 0;
+}
+
+hr {
+  margin-top: 0.3rem;
+  margin-bottom: 1.2rem;
+}
 </style>
+
