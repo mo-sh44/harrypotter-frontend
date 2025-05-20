@@ -3,5 +3,9 @@ import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   plugins: [vue()],
-  base: './' // <<< WICHTIG für Netlify!
+  base: './',
+  preview: {
+    port: 4173,
+    allowedHosts: ['harrypotter-frontend.onrender.com']
+  }
 })
