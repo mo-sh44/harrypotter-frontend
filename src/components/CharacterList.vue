@@ -18,7 +18,7 @@ export default {
     };
   },
   mounted() {
-    fetch("https://spring-boot-harrypotterwebtec-7e3cd5d6a9e7.herokuapp.com/api/external/characters")
+    fetch("https://<DEIN-RENDER-BACKEND>.onrender.com/api/external/characters")
         .then((res) => res.json())
         .then((data) => {
           this.characters = data;
