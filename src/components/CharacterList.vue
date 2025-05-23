@@ -18,7 +18,7 @@ export default {
     };
   },
   mounted() {
-    fetch("https://<DEIN-RENDER-BACKEND>.onrender.com/api/external/characters")
+    fetch("https://harrypotter-backend.onrender.com/api/external/characters")
         .then((res) => res.json())
         .then((data) => {
           this.characters = data;
