@@ -1,54 +1,191 @@
-<script setup>
-import { ref, onMounted } from 'vue';
-
-const characters = ref([]);
-
-onMounted(async () => {
-  try {
-
-    const response = await fetch("http://localhost:8080/api/external/characters"  );
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-    const data = await response.json();
-    characters.value = data;
-  } catch (error) {
-    console.error('Error fetching characters:', error);
-  }
-});
-</script>
-
 <template>
   <div class="characters-container">
-    <h1>Harry Potter Characters</h1>
-    <div v-if="characters.length" class="character-grid">
-      <div v-for="character in characters" :key="character.id" class="character-card">
-        <!-- هذا هو المكان الذي يجب أن تضيف فيه منطق الصورة البديلة -->
-        <img
-            v-if="character.image"
-            :src="character.image"
-            :alt="character.name"
-            class="character-image"
-        />
-        <img
-            v-else
-            src="/images/placeholder.png"
-            alt="No image available"
-            class="character-image"
-        />
-        <!-- نهاية منطق الصورة البديلة -->
+    <p class="category-description">{{ categoryDescriptions[props.category] }}</p>
 
-        <h2 class="character-name">{{ character.name }}</h2>
-        <p v-if="character.house" class="character-detail">House: {{ character.house }}</p>
-        <p v-if="character.wand && character.wand.wood" class="character-detail">Wand Wood: {{ character.wand.wood }}</p>
-        <p v-if="character.wand && character.wand.core" class="character-detail">Wand Core: {{ character.wand.core }}</p>
-        <!-- يمكنك إضافة المزيد من التفاصيل هنا حسب الحاجة -->
+    <!-- 🏠 فلاتر المنازل إذا كانت الفئة طلاب -->
+    <div v-if="props.category === 'students'" class="house-filter">
+      <button
+          v-for="house in availableHouses"
+          :key="house"
+          @click="selectedHouse = house"
+          :class="{ active: selectedHouse === house }"
+      >
+        <template v-if="house === 'all'">🏰 Alle Häuser ({{ characters.length }})</template>
+        <template v-else>{{ houseEmojis[house] }} {{ house }} ({{ houseCounts[house] || 0 }})</template>
+      </button>
+    </div>
+
+    <!-- 📚 Bücher -->
+    <div v-if="props.category === 'books'" class="character-grid">
+      <div v-for="book in filteredCharacters" :key="book.id" class="character-card fade-in magic-border">
+        <img :src="book.attributes.cover" class="character-image" />
+        <h2 class="character-name">{{ book.attributes.title }}</h2>
+        <p>Autor: {{ book.attributes.author }}</p>
+        <p>Veröffentlicht: {{ book.attributes.release_date }}</p>
       </div>
     </div>
-    <p v-else>Loading characters or no characters found...</p>
+
+    <!-- 🎬 Filme -->
+    <div v-else-if="props.category === 'movies'" class="character-grid">
+      <div v-for="movie in filteredCharacters" :key="movie.id" class="character-card fade-in magic-border">
+        <img :src="movie.attributes.poster" class="character-image" />
+        <h2 class="character-name">{{ movie.attributes.title }}</h2>
+        <p>Regisseur: {{ movie.attributes.director || 'unbekannt' }}</p>
+        <p>Veröffentlicht: {{ movie.attributes.release_date }}</p>
+      </div>
+    </div>
+
+    <!-- 👤 Charaktere -->
+    <div v-else-if="filteredCharacters.length" class="character-grid">
+      <div
+          v-for="item in filteredCharacters"
+          :key="item.id || item.name"
+          class="character-card fade-in magic-border"
+          @click="openModal(item)"
+      >
+        <img
+            v-if="item.image && props.category !== 'spells'"
+            :src="item.image"
+            :alt="item.name"
+            class="character-image"
+        />
+        <img
+            v-else-if="props.category !== 'spells'"
+            src="/images/placeholder.png"
+            alt="Kein Bild"
+            class="character-image"
+        />
+        <h2 class="character-name">{{ item.name }}</h2>
+      </div>
+    </div>
+
+    <!-- ⛔ Keine Ergebnisse -->
+    <p v-else>Keine Charaktere gefunden ...</p>
+
+    <!-- 🔮 Modal -->
+    <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
+      <div class="modal">
+        <h2>{{ selectedCharacter.name }}</h2>
+        <img v-if="selectedCharacter.image" :src="selectedCharacter.image" class="modal-image" />
+        <p v-if="selectedCharacter.house">Haus: {{ selectedCharacter.house }}</p>
+        <p v-if="selectedCharacter.actor">Schauspieler: {{ selectedCharacter.actor }}</p>
+        <p v-if="selectedCharacter.wand?.wood">
+          Zauberstab: {{ selectedCharacter.wand.wood }} / {{ selectedCharacter.wand.core }}
+        </p>
+        <button class="close-button" @click="closeModal">Schließen</button>
+      </div>
+    </div>
   </div>
 </template>
+
+<script setup>
+import { ref, onMounted, watch, computed } from 'vue'
+
+const props = defineProps({
+  category: {
+    type: String,
+    default: 'all'
+  },
+  searchQuery: String
+})
+
+const characters = ref([])
+const selectedHouse = ref('all')
+const availableHouses = ref([])
+const selectedCharacter = ref(null)
+const showModal = ref(false)
+
+const categoryDescriptions = {
+  all: '🧙 Alle bekannten Charaktere aus der Welt von Harry Potter.',
+  students: '🎓 Nur Hogwarts-Schüler mit Zauberstäben, Häusern und mehr.',
+  staff: '🧑‍🏫 Lehrkräfte und Mitarbeiter von Hogwarts.',
+  spells: '✨ Liste der wichtigsten Zaubersprüche im Universum.',
+  books: '📚 Alle offiziellen Bücher im Harry-Potter-Universum.',
+  movies: '🎬 Filme aus der Harry-Potter- und Fantastic-Beasts-Reihe.'
+}
+
+const houseEmojis = {
+  Gryffindor: '🦁',
+  Slytherin: '🐍',
+  Ravenclaw: '🦅',
+  Hufflepuff: '🦡'
+}
+
+const houseCounts = computed(() => {
+  const counts = {}
+  characters.value.forEach(c => {
+    if (c.house) {
+      counts[c.house] = (counts[c.house] || 0) + 1
+    }
+  })
+  return counts
+})
+
+const updateHouses = (data) => {
+  const houses = new Set(data.map(c => c.house).filter(Boolean))
+  availableHouses.value = ['all', ...houses]
+}
+
+const fetchCharacters = async () => {
+  try {
+    let url = 'https://hp-api.onrender.com/api/characters'
+
+    if (props.category === 'students') {
+      url = 'https://hp-api.onrender.com/api/characters/students'
+    } else if (props.category === 'staff') {
+      url = 'https://hp-api.onrender.com/api/characters/staff'
+    } else if (props.category === 'spells') {
+      url = 'http://localhost:8080/api/external/spells'
+    } else if (props.category === 'books') {
+      url = 'https://api.potterdb.com/v1/books'
+    } else if (props.category === 'movies') {
+      url = 'https://api.potterdb.com/v1/movies'
+    }
+
+    const res = await fetch(url)
+    const data = await res.json()
+    characters.value = data.data || data
+
+    if (props.category === 'students') updateHouses(data)
+    else availableHouses.value = []
+
+    selectedHouse.value = 'all'
+  } catch (error) {
+    console.error('Fehler beim Laden der Daten:', error)
+    characters.value = []
+  }
+}
+
+const filteredCharacters = computed(() => {
+  let list = characters.value
+
+  if (props.category === 'students' && selectedHouse.value !== 'all') {
+    list = list.filter(c => c.house === selectedHouse.value)
+  }
+
+  if (props.searchQuery) {
+    const q = props.searchQuery.toLowerCase()
+    return list.filter(item =>
+        (item.name || item.attributes?.title)?.toLowerCase().includes(q)
+    )
+  }
+
+  return list
+})
+
+const openModal = (character) => {
+  selectedCharacter.value = character
+  showModal.value = true
+}
+
+const closeModal = () => {
+  showModal.value = false
+  selectedCharacter.value = null
+}
+
+onMounted(fetchCharacters)
+watch(() => props.category, fetchCharacters)
+</script>
 
 <style scoped>
 .characters-container {
@@ -56,41 +193,118 @@ onMounted(async () => {
   text-align: center;
 }
 
+.category-description {
+  font-size: 20px;
+  color: #ccc;
+  margin: 0 auto 30px;
+  max-width: 800px;
+  text-align: center;
+  font-family: 'Crimson Text', serif;
+}
+
+.house-filter {
+  margin: 20px 0;
+}
+.house-filter button {
+  margin: 4px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background-color: #2e2e2e;
+  color: #eee;
+  border: 2px solid transparent;
+  font-family: "Oswald", sans-serif;
+  cursor: pointer;
+}
+.house-filter .active {
+  background-color: #444;
+  border-color: #f9e76b;
+}
+
 .character-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
-  margin-top: 20px;
+  padding: 0 20px;
 }
 
 .character-card {
   background-color: #2c2c2c;
   border-radius: 8px;
   padding: 15px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease;
+}
+.character-card:hover {
+  transform: scale(1.05);
 }
 
 .character-image {
-  width: 150px;
-  height: 150px;
+  width: 100%;
+  height: 280px;
   object-fit: cover;
-  border-radius: 50%;
+  border-radius: 12px;
   margin-bottom: 10px;
-  border: 2px solid #f0e68c;
+  border: none;
+}
+
+/* ✨ Magic Animation */
+.fade-in {
+  animation: fadeIn 0.7s ease forwards;
+}
+@keyframes fadeIn {
+  0% { opacity: 0; transform: translateY(30px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.magic-border {
+  box-shadow: 0 0 15px 2px rgba(255, 255, 150, 0.4);
+  transition: box-shadow 0.3s ease-in-out;
+}
+.magic-border:hover {
+  box-shadow: 0 0 25px 4px rgba(255, 255, 180, 0.8);
 }
 
 .character-name {
-  color: #f0e68c;
-  margin-bottom: 5px;
+  color: #f9e76b;
+  font-size: 20px;
+  font-weight: bold;
+  font-family: "Oswald", sans-serif;
 }
 
-.character-detail {
-  color: #ccc;
-  font-size: 0.9em;
-  margin-bottom: 3px;
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+.modal {
+  background: #1a1a1a;
+  padding: 30px;
+  border-radius: 10px;
+  color: white;
+  max-width: 400px;
+  text-align: center;
+}
+.modal-image {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin: 10px auto;
+}
+.close-button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  background: #f9e76b;
+  color: black;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
 }
 </style>
-
