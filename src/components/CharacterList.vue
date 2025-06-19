@@ -2,7 +2,7 @@
   <div class="characters-container">
     <p class="category-description">{{ categoryDescriptions[props.category] }}</p>
 
-    <!-- 🏠 فلاتر المنازل إذا كانت الفئة طلاب -->
+    <!-- 🏠 فلاتر المنازل -->
     <div v-if="props.category === 'students'" class="house-filter">
       <button
           v-for="house in availableHouses"
@@ -56,10 +56,14 @@
             class="character-image"
         />
         <h2 class="character-name">{{ item.name }}</h2>
+
+        <!-- ✅ زر الحفظ -->
+        <button class="fav-button" @click.stop="saveFavorite(item)">
+          Als Favorit speichern
+        </button>
       </div>
     </div>
 
-    <!-- ⛔ Keine Ergebnisse -->
     <p v-else>Keine Charaktere gefunden ...</p>
 
     <!-- 🔮 Modal -->
@@ -183,6 +187,30 @@ const closeModal = () => {
   selectedCharacter.value = null
 }
 
+// ✅ حفظ الشخصية في قاعدة البيانات عبر POST
+const saveFavorite = async (character) => {
+  try {
+    const response = await fetch('https://harrypotterwebtech.onrender.com/api/favorites', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: character.name,
+        image: character.image || null,
+        house: character.house || null
+      })
+    })
+
+
+    if (!response.ok) throw new Error('Fehler beim Speichern.')
+    alert('Gespeichert! 🎉')
+  } catch (error) {
+    console.error('POST-Fehler:', error)
+    alert('Fehler beim Speichern.')
+  }
+}
+
 onMounted(fetchCharacters)
 watch(() => props.category, fetchCharacters)
 </script>
@@ -198,7 +226,6 @@ watch(() => props.category, fetchCharacters)
   color: #ccc;
   margin: 0 auto 30px;
   max-width: 800px;
-  text-align: center;
   font-family: 'Crimson Text', serif;
 }
 
@@ -248,7 +275,6 @@ watch(() => props.category, fetchCharacters)
   border: none;
 }
 
-/* ✨ Magic Animation */
 .fade-in {
   animation: fadeIn 0.7s ease forwards;
 }
@@ -272,7 +298,6 @@ watch(() => props.category, fetchCharacters)
   font-family: "Oswald", sans-serif;
 }
 
-/* Modal */
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -306,5 +331,22 @@ watch(() => props.category, fetchCharacters)
   border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
+}
+
+/* ✅ زر الحفظ */
+.fav-button {
+  margin-top: 10px;
+  background-color: #f9e76b;
+  color: #111;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: 'Oswald', sans-serif;
+  transition: background-color 0.3s ease;
+}
+.fav-button:hover {
+  background-color: #fff176;
 }
 </style>
