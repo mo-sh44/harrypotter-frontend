@@ -212,6 +212,7 @@ const saveFavorite = async (character) => {
   }
 }
 
+
 onMounted(fetchCharacters)
 watch(() => props.category, fetchCharacters)
 
