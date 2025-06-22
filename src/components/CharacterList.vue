@@ -1,3 +1,4 @@
+هيك صح
 <template>
   <div class="characters-container">
     <p class="category-description">{{ categoryDescriptions[props.category] }}</p>
@@ -187,7 +188,6 @@ const closeModal = () => {
   selectedCharacter.value = null
 }
 
-// ✅ حفظ الشخصية في قاعدة البيانات عبر POST
 const saveFavorite = async (character) => {
   try {
     const response = await fetch('https://harrypotterwebtech.onrender.com/api/favorites', {
@@ -202,12 +202,13 @@ const saveFavorite = async (character) => {
       })
     })
 
+    if (!response.ok) throw new Error(`Fehler beim Speichern! Status: ${response.status}`)
 
-    if (!response.ok) throw new Error('Fehler beim Speichern.')
-    alert('Gespeichert! 🎉')
+    const savedCharacter = await response.json()
+    alert(`🎉 Charakter gespeichert: ${savedCharacter.name}`)
   } catch (error) {
-    console.error('POST-Fehler:', error)
-    alert('Fehler beim Speichern.')
+    console.error('❌ Fehler beim POST:', error)
+    alert('❌ Fehler beim Speichern des Charakters.')
   }
 }
 
