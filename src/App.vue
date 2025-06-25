@@ -6,44 +6,67 @@
       <nav class="nav-links">
         <a @click="showLanding = true">Startseite</a>
         <a @click="navigate('students')">Studenten</a>
-        <a @click="navigate('staff')">Mitarbeiter</a>
+        <a @click="navigate('staff')">Lehrkräfte</a>
         <a @click="navigate('spells')">Zauber</a>
         <a @click="navigate('books')">Bücher</a>
         <a @click="navigate('movies')">Filme</a>
-        <a href="#">Über uns</a>
-        <a href="#">Anleitung</a>
-        <a href="#">Kontakt</a>
-        <input type="text" placeholder="🔍 Suchen..." class="nav-search" />
+        <a @click="navigate('favorites')">Favoriten</a>
+        <a @click="navigate('about')">Über uns</a>
+
+        <div class="search-wrapper">
+          <input type="text" v-model="searchQuery" placeholder="🔍 Suchen..." class="nav-search" />
+          <ul v-if="filteredSuggestions.length && searchQuery" class="suggestions">
+            <li v-for="name in filteredSuggestions" :key="name" @click="handleSuggestionClick(name)">
+              {{ name }}
+            </li>
+          </ul>
+        </div>
       </nav>
     </header>
 
-    <!-- باقي الكود كما هو -->
+    <!-- 🏠 الصفحة الرئيسية -->
     <LandingPage v-if="showLanding" @enter="showLanding = false" />
 
+    <!-- 📂 باقي الصفحات -->
     <div v-else>
       <CharacterList
+          v-if="selectedCategory !== 'favorites' && selectedCategory !== 'about'"
           :category="selectedCategory"
           :search-query="searchQuery"
           @names-loaded="updateNames"
       />
+      <FavoriteList v-else-if="selectedCategory === 'favorites'" />
+      <UeberUns v-else-if="selectedCategory === 'about'" />
     </div>
   </div>
 </template>
 
-
 <script>
 import LandingPage from './components/LandingPage.vue'
 import CharacterList from './components/CharacterList.vue'
+import FavoriteList from './components/FavoriteList.vue'
+import UeberUns from './components/Uber-uns.vue'
 
 export default {
   name: 'App',
-  components: { LandingPage, CharacterList },
+  components: {
+    LandingPage,
+    CharacterList,
+    FavoriteList,
+    UeberUns
+  },
   data() {
     return {
       showLanding: true,
       selectedCategory: 'all',
       searchQuery: '',
+      filteredSuggestions: [],
       allNames: []
+    }
+  },
+  watch: {
+    searchQuery() {
+      this.filterSuggestions()
     }
   },
   methods: {
@@ -53,6 +76,16 @@ export default {
     navigate(category) {
       this.selectedCategory = category
       this.showLanding = false
+    },
+    handleSuggestionClick(name) {
+      this.searchQuery = name
+      this.filteredSuggestions = []
+    },
+    filterSuggestions() {
+      const query = this.searchQuery.toLowerCase()
+      this.filteredSuggestions = this.allNames.filter(name =>
+          name.toLowerCase().includes(query)
+      )
     }
   }
 }
@@ -94,6 +127,7 @@ body, html {
   gap: 15px;
   align-items: center;
   flex-wrap: wrap;
+  position: relative;
 }
 
 .nav-links a {
@@ -114,5 +148,34 @@ body, html {
   background-color: #1f1f1f;
   color: white;
   outline: none;
+}
+
+.search-wrapper {
+  position: relative;
+}
+
+.suggestions {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  width: 200px;
+  background-color: #1f1f1f;
+  color: white;
+  border: 1px solid #555;
+  border-radius: 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 2000;
+  font-family: 'Georgia', serif;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+}
+
+.suggestions li {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.suggestions li:hover {
+  background-color: #333;
 }
 </style>

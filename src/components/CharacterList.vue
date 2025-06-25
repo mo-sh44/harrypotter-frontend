@@ -23,6 +23,16 @@
         <h2 class="character-name">{{ book.attributes.title }}</h2>
         <p>Autor: {{ book.attributes.author }}</p>
         <p>Veröffentlicht: {{ book.attributes.release_date }}</p>
+
+        <!-- ✅ زر حفظ الكتب -->
+        <button class="fav-button" @click="saveFavorite({
+        name: book.attributes.title,
+        image: book.attributes.cover,
+        house: '📖 Buch'
+        })">
+
+          Als Favorit speichern
+        </button>
       </div>
     </div>
 
@@ -33,6 +43,16 @@
         <h2 class="character-name">{{ movie.attributes.title }}</h2>
         <p>Regisseur: {{ movie.attributes.director || 'unbekannt' }}</p>
         <p>Veröffentlicht: {{ movie.attributes.release_date }}</p>
+
+        <!-- ✅ زر حفظ الأفلام -->
+        <button class="fav-button" @click="saveFavorite({
+        name: movie.attributes.title,
+        image: movie.attributes.poster,
+        house: '🎬 Film'
+    })">
+          Als Favorit speichern
+        </button>
+
       </div>
     </div>
 
@@ -203,7 +223,6 @@ const saveFavorite = async (character) => {
     })
 
     if (!response.ok) throw new Error(`Fehler beim Speichern! Status: ${response.status}`)
-
     const savedCharacter = await response.json()
     alert(`🎉 Charakter gespeichert: ${savedCharacter.name}`)
   } catch (error) {
@@ -211,6 +230,7 @@ const saveFavorite = async (character) => {
     alert('❌ Fehler beim Speichern des Charakters.')
   }
 }
+
 
 
 onMounted(fetchCharacters)
