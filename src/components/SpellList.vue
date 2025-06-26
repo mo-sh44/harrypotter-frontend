@@ -30,7 +30,7 @@ export default {
     }
   },
   mounted() {
-    fetch('https://harrypotterwebtech.onrender.com/api/external/spell')
+    fetch('http://localhost:8080/api/external/spells')
         .then(res => {
           if (!res.ok) throw new Error(`Fehler beim Abruf: ${res.status}`)
           return res.json()
