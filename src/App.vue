@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <!-- 🔁 شريط التنقل المعدل -->
+    <!-- 🔁 Navigation -->
     <header class="nav-header">
       <div class="logo">✨ Harry Potter World</div>
       <nav class="nav-links">
@@ -13,6 +13,7 @@
         <a @click="navigate('favorites')">Favoriten</a>
         <a @click="navigate('about')">Über uns</a>
 
+        <!-- 🔍 Suchfeld -->
         <div class="search-wrapper">
           <input type="text" v-model="searchQuery" placeholder="🔍 Suchen..." class="nav-search" />
           <ul v-if="filteredSuggestions.length && searchQuery" class="suggestions">
@@ -24,19 +25,38 @@
       </nav>
     </header>
 
-    <!-- 🏠 الصفحة الرئيسية -->
+    <!-- 🏠 Landing -->
     <LandingPage v-if="showLanding" @enter="showLanding = false" />
 
-    <!-- 📂 باقي الصفحات -->
+    <!-- 📂 Seitenansicht -->
     <div v-else>
       <CharacterList
-          v-if="selectedCategory !== 'favorites' && selectedCategory !== 'about'"
+          v-if="selectedCategory === 'students' || selectedCategory === 'staff'"
           :category="selectedCategory"
           :search-query="searchQuery"
           @names-loaded="updateNames"
       />
-      <FavoriteList v-else-if="selectedCategory === 'favorites'" />
-      <UeberUns v-else-if="selectedCategory === 'about'" />
+      <SpellList
+          v-else-if="selectedCategory === 'spells'"
+          :search-query="searchQuery"
+          @names-loaded="updateNames"
+      />
+      <BookList
+          v-else-if="selectedCategory === 'books'"
+          :search-query="searchQuery"
+          @names-loaded="updateNames"
+      />
+      <MovieList
+          v-else-if="selectedCategory === 'movies'"
+          :search-query="searchQuery"
+          @names-loaded="updateNames"
+      />
+      <FavoriteList
+          v-else-if="selectedCategory === 'favorites'"
+      />
+      <UeberUns
+          v-else-if="selectedCategory === 'about'"
+      />
     </div>
   </div>
 </template>
@@ -44,6 +64,9 @@
 <script>
 import LandingPage from './components/LandingPage.vue'
 import CharacterList from './components/CharacterList.vue'
+import SpellList from './components/SpellList.vue'
+import BookList from './components/BookList.vue'
+import MovieList from './components/MovieList.vue'
 import FavoriteList from './components/FavoriteList.vue'
 import UeberUns from './components/Uber-uns.vue'
 
@@ -52,6 +75,9 @@ export default {
   components: {
     LandingPage,
     CharacterList,
+    SpellList,
+    BookList,
+    MovieList,
     FavoriteList,
     UeberUns
   },

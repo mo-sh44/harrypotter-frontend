@@ -1,4 +1,3 @@
-هيك صح
 <template>
   <div class="characters-container">
     <p class="category-description">{{ categoryDescriptions[props.category] }}</p>
@@ -16,48 +15,8 @@
       </button>
     </div>
 
-    <!-- 📚 Bücher -->
-    <div v-if="props.category === 'books'" class="character-grid">
-      <div v-for="book in filteredCharacters" :key="book.id" class="character-card fade-in magic-border">
-        <img :src="book.attributes.cover" class="character-image" />
-        <h2 class="character-name">{{ book.attributes.title }}</h2>
-        <p>Autor: {{ book.attributes.author }}</p>
-        <p>Veröffentlicht: {{ book.attributes.release_date }}</p>
-
-        <!-- ✅ زر حفظ الكتب -->
-        <button class="fav-button" @click="saveFavorite({
-        name: book.attributes.title,
-        image: book.attributes.cover,
-        house: '📖 Buch'
-        })">
-
-          Als Favorit speichern
-        </button>
-      </div>
-    </div>
-
-    <!-- 🎬 Filme -->
-    <div v-else-if="props.category === 'movies'" class="character-grid">
-      <div v-for="movie in filteredCharacters" :key="movie.id" class="character-card fade-in magic-border">
-        <img :src="movie.attributes.poster" class="character-image" />
-        <h2 class="character-name">{{ movie.attributes.title }}</h2>
-        <p>Regisseur: {{ movie.attributes.director || 'unbekannt' }}</p>
-        <p>Veröffentlicht: {{ movie.attributes.release_date }}</p>
-
-        <!-- ✅ زر حفظ الأفلام -->
-        <button class="fav-button" @click="saveFavorite({
-        name: movie.attributes.title,
-        image: movie.attributes.poster,
-        house: '🎬 Film'
-    })">
-          Als Favorit speichern
-        </button>
-
-      </div>
-    </div>
-
-    <!-- 👤 Charaktere -->
-    <div v-else-if="filteredCharacters.length" class="character-grid">
+    <!-- 👤 الشخصيات فقط -->
+    <div v-if="filteredCharacters.length" class="character-grid">
       <div
           v-for="item in filteredCharacters"
           :key="item.id || item.name"
@@ -65,23 +24,19 @@
           @click="openModal(item)"
       >
         <img
-            v-if="item.image && props.category !== 'spells'"
+            v-if="item.image"
             :src="item.image"
             :alt="item.name"
             class="character-image"
         />
         <img
-            v-else-if="props.category !== 'spells'"
+            v-else
             src="/images/placeholder.png"
             alt="Kein Bild"
             class="character-image"
         />
         <h2 class="character-name">{{ item.name }}</h2>
-
-        <!-- ✅ زر الحفظ -->
-        <button class="fav-button" @click.stop="saveFavorite(item)">
-          Als Favorit speichern
-        </button>
+        <button class="fav-button" @click.stop="saveFavorite(item)">Als Favorit speichern</button>
       </div>
     </div>
 
@@ -124,9 +79,6 @@ const categoryDescriptions = {
   all: '🧙 Alle bekannten Charaktere aus der Welt von Harry Potter.',
   students: '🎓 Nur Hogwarts-Schüler mit Zauberstäben, Häusern und mehr.',
   staff: '🧑‍🏫 Lehrkräfte und Mitarbeiter von Hogwarts.',
-  spells: '✨ Liste der wichtigsten Zaubersprüche im Universum.',
-  books: '📚 Alle offiziellen Bücher im Harry-Potter-Universum.',
-  movies: '🎬 Filme aus der Harry-Potter- und Fantastic-Beasts-Reihe.'
 }
 
 const houseEmojis = {
@@ -159,12 +111,6 @@ const fetchCharacters = async () => {
       url = 'https://hp-api.onrender.com/api/characters/students'
     } else if (props.category === 'staff') {
       url = 'https://hp-api.onrender.com/api/characters/staff'
-    } else if (props.category === 'spells') {
-      url = 'http://localhost:8080/api/external/spells'
-    } else if (props.category === 'books') {
-      url = 'https://api.potterdb.com/v1/books'
-    } else if (props.category === 'movies') {
-      url = 'https://api.potterdb.com/v1/movies'
     }
 
     const res = await fetch(url)
@@ -190,9 +136,7 @@ const filteredCharacters = computed(() => {
 
   if (props.searchQuery) {
     const q = props.searchQuery.toLowerCase()
-    return list.filter(item =>
-        (item.name || item.attributes?.title)?.toLowerCase().includes(q)
-    )
+    return list.filter(item => item.name?.toLowerCase().includes(q))
   }
 
   return list
@@ -231,12 +175,8 @@ const saveFavorite = async (character) => {
   }
 }
 
-
-
 onMounted(fetchCharacters)
 watch(() => props.category, fetchCharacters)
-
-
 </script>
 
 <style scoped>
@@ -357,7 +297,6 @@ watch(() => props.category, fetchCharacters)
   font-weight: bold;
 }
 
-/* ✅ زر الحفظ */
 .fav-button {
   margin-top: 10px;
   background-color: #f9e76b;
