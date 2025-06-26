@@ -75,6 +75,10 @@ const availableHouses = ref([])
 const selectedCharacter = ref(null)
 const showModal = ref(false)
 
+// 🪪 إنشاء أو استرجاع userId من الجهاز
+const userId = localStorage.getItem('userId') || crypto.randomUUID()
+localStorage.setItem('userId', userId)
+
 const categoryDescriptions = {
   all: '🧙 Alle bekannten Charaktere aus der Welt von Harry Potter.',
   students: '🎓 Nur Hogwarts-Schüler mit Zauberstäben, Häusern und mehr.',
@@ -106,7 +110,6 @@ const updateHouses = (data) => {
 const fetchCharacters = async () => {
   try {
     let url = 'https://hp-api.onrender.com/api/characters'
-
     if (props.category === 'students') {
       url = 'https://hp-api.onrender.com/api/characters/students'
     } else if (props.category === 'staff') {
@@ -129,16 +132,13 @@ const fetchCharacters = async () => {
 
 const filteredCharacters = computed(() => {
   let list = characters.value
-
   if (props.category === 'students' && selectedHouse.value !== 'all') {
     list = list.filter(c => c.house === selectedHouse.value)
   }
-
   if (props.searchQuery) {
     const q = props.searchQuery.toLowerCase()
     return list.filter(item => item.name?.toLowerCase().includes(q))
   }
-
   return list
 })
 
@@ -162,7 +162,8 @@ const saveFavorite = async (character) => {
       body: JSON.stringify({
         name: character.name,
         image: character.image || null,
-        house: character.house || null
+        house: character.house || null,
+        userId: userId // ✅ إرسال userId
       })
     })
 
@@ -178,6 +179,7 @@ const saveFavorite = async (character) => {
 onMounted(fetchCharacters)
 watch(() => props.category, fetchCharacters)
 </script>
+
 
 <style scoped>
 .characters-container {

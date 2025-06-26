@@ -1,6 +1,7 @@
+
 <template>
   <div class="characters-container">
-    <p class="category-description">💛 Deine Lieblingscharaktere</p>
+    <p class="category-description">💛 Deine Favoriten (Charaktere, Bücher, Filme, Zauber)</p>
 
     <div v-if="favorites.length" class="character-grid">
       <div
@@ -33,28 +34,52 @@
   </div>
 </template>
 
+
+
+
+
 <script setup>
 import { ref, onMounted } from 'vue'
 
 const favorites = ref([])
+const userId = localStorage.getItem('userId') || crypto.randomUUID()
+localStorage.setItem('userId', userId) // Falls neu
+console.log("Aktueller userId:", userId)
 
 const fetchFavorites = async () => {
   try {
-    const res = await fetch('https://harrypotterwebtech.onrender.com/api/favorites')
-    const data = await res.json()
-    favorites.value = data
+    const userId = localStorage.getItem('userId');
+    const res = await fetch('https://harrypotterwebtech.onrender.com/api/favorites', {
+      headers: {
+        'user-id': userId
+      }
+    });
+
+    const data = await res.json();
+    favorites.value = data;
   } catch (err) {
-    console.error('Fehler beim Laden der Favoriten:', err)
+    console.error('Fehler beim Laden der Favoriten:', err);
   }
 }
+
 
 const deleteFavorite = async (id) => {
   try {
     const res = await fetch(`https://harrypotterwebtech.onrender.com/api/favorites/${id}`, {
-      method: 'DELETE'
+      method: 'DELETE',
+      headers: {
+        'user-id': userId
+      }
     })
 
-    if (!res.ok) throw new Error('Löschen fehlgeschlagen')
+    if (!res.ok) {
+      if (res.status === 403) {
+        alert('⚠️ Du darfst diesen Favoriten nicht löschen.')
+      } else {
+        throw new Error('Löschen fehlgeschlagen')
+      }
+      return
+    }
 
     favorites.value = favorites.value.filter(f => f.id !== id)
     alert('❌ Favorit entfernt.')
@@ -66,6 +91,11 @@ const deleteFavorite = async (id) => {
 
 onMounted(fetchFavorites)
 </script>
+
+
+
+
+
 
 <style scoped>
 .characters-container {
@@ -89,7 +119,6 @@ onMounted(fetchFavorites)
   padding: 0 20px;
 }
 
-
 .character-card {
   background-color: #2c2c2c;
   border-radius: 8px;
@@ -97,8 +126,8 @@ onMounted(fetchFavorites)
   text-align: center;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
   transition: transform 0.3s ease;
-  max-width: 220px;          /* ⬅️ جديد */
-  margin: auto;              /* ⬅️ جديد */
+  max-width: 220px;
+  margin: auto;
 }
 
 .character-image {
@@ -110,9 +139,6 @@ onMounted(fetchFavorites)
   margin-bottom: 10px;
   border: none;
 }
-
-
-
 
 .fade-in {
   animation: fadeIn 0.7s ease forwards;
@@ -149,10 +175,12 @@ onMounted(fetchFavorites)
   font-family: 'Oswald', sans-serif;
   transition: background-color 0.3s ease;
 }
+
 .fav-button.delete {
   background-color: #ff4d4d;
   color: white;
 }
+
 .fav-button.delete:hover {
   background-color: #e60000;
 }
