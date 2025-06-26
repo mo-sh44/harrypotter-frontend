@@ -6,9 +6,6 @@
       <div v-for="spell in filteredSpells" :key="spell.name" class="spell-card fade-in magic-border">
         <h3>{{ spell.name }}</h3>
         <p><strong>Effekt:</strong> {{ spell.description }}</p>
-        <button class="fav-button" @click="saveFavorite(spell)">
-          Als Favorit speichern
-        </button>
       </div>
     </div>
   </div>
@@ -33,7 +30,7 @@ export default {
     }
   },
   mounted() {
-    fetch('http://localhost:8080/api/external/spells')
+    fetch('https://harrypotterwebtech.onrender.com/api/external/spell')
         .then(res => {
           if (!res.ok) throw new Error(`Fehler beim Abruf: ${res.status}`)
           return res.json()
