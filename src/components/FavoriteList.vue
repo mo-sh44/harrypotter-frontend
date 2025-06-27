@@ -58,7 +58,6 @@ const fetchFavorites = async () => {
   }
 }
 
-// ✅ DELETE: Nur wenn userId stimmt
 const deleteFavorite = async (id) => {
   try {
     const res = await fetch(`https://harrypotterwebtech.onrender.com/api/favorites/${id}`, {
@@ -71,10 +70,10 @@ const deleteFavorite = async (id) => {
     if (!res.ok) {
       if (res.status === 403) {
         alert('⚠️ Du darfst diesen Favoriten nicht löschen.')
+        return // 🛑 منع الحذف من الواجهة
       } else {
         throw new Error('Löschen fehlgeschlagen')
       }
-      return
     }
 
     favorites.value = favorites.value.filter(f => f.id !== id)
@@ -84,6 +83,7 @@ const deleteFavorite = async (id) => {
     alert('Fehler beim Entfernen des Favoriten.')
   }
 }
+
 
 onMounted(fetchFavorites)
 </script>
