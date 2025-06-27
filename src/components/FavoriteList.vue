@@ -1,4 +1,3 @@
-
 <template>
   <div class="characters-container">
     <p class="category-description">💛 Deine Favoriten (Charaktere, Bücher, Filme, Zauber)</p>
@@ -34,35 +33,32 @@
   </div>
 </template>
 
-
-
-
-
 <script setup>
 import { ref, onMounted } from 'vue'
 
 const favorites = ref([])
 const userId = localStorage.getItem('userId') || crypto.randomUUID()
-localStorage.setItem('userId', userId) // Falls neu
-console.log("Aktueller userId:", userId)
+localStorage.setItem('userId', userId)
+console.log('Aktueller userId:', userId)
 
+// ✅ GET: Nur Favoriten dieses Users laden
 const fetchFavorites = async () => {
   try {
-    const userId = localStorage.getItem('userId');
     const res = await fetch('https://harrypotterwebtech.onrender.com/api/favorites', {
       headers: {
         'user-id': userId
       }
-    });
+    })
 
-    const data = await res.json();
-    favorites.value = data;
+    if (!res.ok) throw new Error('Fehler beim Laden')
+    const data = await res.json()
+    favorites.value = data
   } catch (err) {
-    console.error('Fehler beim Laden der Favoriten:', err);
+    console.error('Fehler beim Laden der Favoriten:', err)
   }
 }
 
-
+// ✅ DELETE: Nur wenn userId stimmt
 const deleteFavorite = async (id) => {
   try {
     const res = await fetch(`https://harrypotterwebtech.onrender.com/api/favorites/${id}`, {
@@ -91,11 +87,6 @@ const deleteFavorite = async (id) => {
 
 onMounted(fetchFavorites)
 </script>
-
-
-
-
-
 
 <style scoped>
 .characters-container {
