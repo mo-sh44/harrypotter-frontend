@@ -15,7 +15,7 @@
       </button>
     </div>
 
-    <!-- 👤 الشخصيات فقط -->
+    <!-- 👤 الشبكة -->
     <div v-if="filteredCharacters.length" class="character-grid">
       <div
           v-for="item in filteredCharacters"
@@ -24,15 +24,8 @@
           @click="openModal(item)"
       >
         <img
-            v-if="item.image"
-            :src="item.image"
+            :src="getCharacterImage(item)"
             :alt="item.name"
-            class="character-image"
-        />
-        <img
-            v-else
-            src="/images/placeholder.png"
-            alt="Kein Bild"
             class="character-image"
         />
         <h2 class="character-name">{{ item.name }}</h2>
@@ -61,6 +54,10 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 
+// 🔁 statisch geladen für beide Ordner
+const studentImages = import.meta.glob('/public/images/stu/*', { eager: true })
+const staffImages = import.meta.glob('/public/images/profs/*', { eager: true })
+
 const props = defineProps({
   category: {
     type: String,
@@ -75,7 +72,6 @@ const availableHouses = ref([])
 const selectedCharacter = ref(null)
 const showModal = ref(false)
 
-// 🪪 إنشاء أو استرجاع userId من الجهاز
 const userId = localStorage.getItem('userId') || crypto.randomUUID()
 localStorage.setItem('userId', userId)
 
@@ -142,6 +138,27 @@ const filteredCharacters = computed(() => {
   return list
 })
 
+// ✅ Lokales Bild suchen, sonst API-Bild oder Platzhalter
+const getCharacterImage = (character) => {
+  const cleanName = character.name
+      .replace(/\s/g, '-')
+      .replace(/\./g, '')
+      .replace(/[^a-zA-Z0-9\-]/g, '')
+
+  const extensions = ['webp', 'jpg', 'jpeg', 'png']
+  const images = props.category === 'students' ? studentImages
+      : props.category === 'staff' ? staffImages
+          : {}
+
+  for (const ext of extensions) {
+    const fileName = `${cleanName}.${ext}`.toLowerCase()
+    const match = Object.keys(images).find(path => path.toLowerCase().includes(fileName))
+    if (match) return match.replace('/public', '')
+  }
+
+  return character.image || '/images/placeholder.png'
+}
+
 const openModal = (character) => {
   selectedCharacter.value = character
   showModal.value = true
@@ -161,9 +178,9 @@ const saveFavorite = async (character) => {
       },
       body: JSON.stringify({
         name: character.name,
-        image: character.image || null,
+        image: getCharacterImage(character),
         house: character.house || null,
-        userId: userId // ✅ إرسال userId
+        userId: userId
       })
     })
 
@@ -180,13 +197,11 @@ onMounted(fetchCharacters)
 watch(() => props.category, fetchCharacters)
 </script>
 
-
 <style scoped>
 .characters-container {
   padding: 20px;
   text-align: center;
 }
-
 .category-description {
   font-size: 20px;
   color: #ccc;
@@ -194,7 +209,6 @@ watch(() => props.category, fetchCharacters)
   max-width: 800px;
   font-family: 'Crimson Text', serif;
 }
-
 .house-filter {
   margin: 20px 0;
 }
@@ -212,14 +226,12 @@ watch(() => props.category, fetchCharacters)
   background-color: #444;
   border-color: #f9e76b;
 }
-
 .character-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 20px;
   padding: 0 20px;
 }
-
 .character-card {
   background-color: #2c2c2c;
   border-radius: 8px;
@@ -231,7 +243,6 @@ watch(() => props.category, fetchCharacters)
 .character-card:hover {
   transform: scale(1.05);
 }
-
 .character-image {
   width: 100%;
   height: 280px;
@@ -240,7 +251,6 @@ watch(() => props.category, fetchCharacters)
   margin-bottom: 10px;
   border: none;
 }
-
 .fade-in {
   animation: fadeIn 0.7s ease forwards;
 }
@@ -248,7 +258,6 @@ watch(() => props.category, fetchCharacters)
   0% { opacity: 0; transform: translateY(30px) scale(0.95); }
   100% { opacity: 1; transform: translateY(0) scale(1); }
 }
-
 .magic-border {
   box-shadow: 0 0 15px 2px rgba(255, 255, 150, 0.4);
   transition: box-shadow 0.3s ease-in-out;
@@ -256,14 +265,27 @@ watch(() => props.category, fetchCharacters)
 .magic-border:hover {
   box-shadow: 0 0 25px 4px rgba(255, 255, 180, 0.8);
 }
-
 .character-name {
   color: #f9e76b;
   font-size: 20px;
   font-weight: bold;
   font-family: "Oswald", sans-serif;
 }
-
+.fav-button {
+  margin-top: 10px;
+  background-color: #f9e76b;
+  color: #111;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: bold;
+  font-family: 'Oswald', sans-serif;
+  transition: background-color 0.3s ease;
+}
+.fav-button:hover {
+  background-color: #fff176;
+}
 .modal-overlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -297,21 +319,5 @@ watch(() => props.category, fetchCharacters)
   border-radius: 5px;
   cursor: pointer;
   font-weight: bold;
-}
-
-.fav-button {
-  margin-top: 10px;
-  background-color: #f9e76b;
-  color: #111;
-  border: none;
-  padding: 8px 14px;
-  border-radius: 20px;
-  cursor: pointer;
-  font-weight: bold;
-  font-family: 'Oswald', sans-serif;
-  transition: background-color 0.3s ease;
-}
-.fav-button:hover {
-  background-color: #fff176;
 }
 </style>
