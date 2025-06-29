@@ -70,7 +70,7 @@ const deleteFavorite = async (id) => {
     if (!res.ok) {
       if (res.status === 403) {
         alert('⚠️ Du darfst diesen Favoriten nicht löschen.')
-        return // 🛑 منع الحذف من الواجهة
+        return
       } else {
         throw new Error('Löschen fehlgeschlagen')
       }

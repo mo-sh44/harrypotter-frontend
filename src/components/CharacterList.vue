@@ -2,7 +2,7 @@
   <div class="characters-container">
     <p class="category-description">{{ categoryDescriptions[props.category] }}</p>
 
-    <!-- 🏠 فلاتر المنازل -->
+
     <div v-if="props.category === 'students'" class="house-filter">
       <button
           v-for="house in availableHouses"
@@ -15,7 +15,7 @@
       </button>
     </div>
 
-    <!-- 👤 الشبكة -->
+
     <div v-if="filteredCharacters.length" class="character-grid">
       <div
           v-for="item in filteredCharacters"

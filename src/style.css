@@ -31,7 +31,7 @@ p {
   margin-right: 10%;
 }
 
-/* الشريط العلوي */
+
 .top-bar {
   display: flex;
   justify-content: center;
@@ -111,7 +111,7 @@ p {
 .suggestions li:hover {
   background-color: #333;
 }
-/* 🔵 الصور الدائرية: الشخصيات + الأفلام */
+
 .character-image {
   width: 150px;
   height: 150px;
@@ -122,7 +122,7 @@ p {
   box-shadow: 0 0 8px rgba(255, 255, 150, 0.6);
 }
 
-/* 📚 الصور المستطيلة: الكتب */
+
 .book-image {
   width: 150px;
   height: auto;
@@ -133,7 +133,7 @@ p {
   border: 2px solid #aaa;
 }
 
-/* ✅ دعم الشاشات الصغيرة */
+
 @media (max-width: 768px) {
   .nav-header {
     flex-direction: column;

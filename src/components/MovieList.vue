@@ -128,7 +128,7 @@ export default {
   font-family: "Oswald", sans-serif;
 }
 
-/* ✅ زر الحفظ */
+
 .fav-button {
   margin-top: 10px;
   background-color: #f9e76b;

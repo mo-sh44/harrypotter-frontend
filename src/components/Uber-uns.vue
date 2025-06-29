@@ -14,7 +14,7 @@
 </template>
 
 <script setup>
-// لا حاجة لسطر سكريبت إضافي حالياً
+
 </script>
 
 <style scoped>
@@ -36,7 +36,7 @@
 }
 
 .overlay {
-  background-color: rgba(0, 0, 0, 0.6); /* شفافية خلف النص */
+  background-color: rgba(0, 0, 0, 0.3);
   padding: 50px;
   border-radius: 12px;
   text-align: center;
