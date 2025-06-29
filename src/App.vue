@@ -2,7 +2,9 @@
   <div id="app">
     <!-- 🔁 Navigation -->
     <header class="nav-header">
-      <div class="logo">✨ Harry Potter World</div>
+<!--      <div class="logo">✨ Harry Potter World</div>-->
+      <div class="logo" @click="showLanding = true" style="cursor: pointer;">✨ Harry Potter World</div>
+
       <nav class="nav-links">
         <a @click="showLanding = true">Startseite</a>
         <a @click="navigate('students')">Studenten</a>
